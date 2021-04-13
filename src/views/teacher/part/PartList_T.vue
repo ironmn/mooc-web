@@ -39,8 +39,8 @@
           label="编辑"
           width="150">
         <template slot-scope="scope">
-          <el-button  @click="handleClick(scope.row)" type="primary" size="small">修改</el-button>
-          <el-button @click="drop(scope.row)" type="danger" size="small">删除</el-button>
+          <el-button  @click="updatePart(scope.row)" type="primary" size="small">修改</el-button>
+          <el-button @click="dropPart(scope.row)" type="danger" size="small">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -52,10 +52,10 @@
         :before-close="handleClose"
         >
       <el-form :model="editPart" :rules="rules" ref="editPart" label-width="100px" class="demo-ruleForm">
-        <el-form-item label="课程序号" prop="p_index">
+        <el-form-item label="章节序号" prop="p_index">
           <el-input v-model="editPart.p_index"></el-input>
         </el-form-item>
-        <el-form-item label="课程名称" prop="p_name">
+        <el-form-item label="章节名称" prop="p_name">
           <el-input v-model="editPart.p_name"></el-input>
         </el-form-item>
 
@@ -70,10 +70,22 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
+          <el-button type="primary" @click="submitForm('editPart')">立即创建</el-button>
           <el-button @click="resetForm('editPart')">取消</el-button>
         </el-form-item>
       </el-form>
+    </el-dialog>
+
+    <el-dialog
+        title="提示"
+        :visible.sync="confirmDelete"
+        width="30%"
+        >
+      <span>确定要删除吗？</span>
+      <span slot="footer" class="dialog-footer">
+    <el-button @click="confirmDelete = false">取 消</el-button>
+    <el-button type="primary" @click="innerDropPart">确 定</el-button>
+  </span>
     </el-dialog>
   </el-row>
 </template>
@@ -81,6 +93,7 @@
 
 <script>
 import pdf from 'vue-pdf'
+import qs from "qs";
 export default {
   name: 'partList',
   components:{
@@ -100,6 +113,7 @@ export default {
     return {
       c_id: null,
       t_id: null,
+      tmp_p_id: null,//作为前后端交互的临时变量
       tableData: [
         {
           p_id: 'aaa001_1',
@@ -116,8 +130,11 @@ export default {
         p_id: null,
         p_index: null,
         p_name: null,
+        c_id: null,
       },
       dialogVisible: false,
+      //删除的对话框
+      confirmDelete: false,
       url:"http://localhost:8181/mooc/file/pdf",
       rules: {
         p_index: [
@@ -134,6 +151,7 @@ export default {
   created() {
     this.c_id = this.$route.query.c_id;
     this.t_id = this.$route.query.t_id;
+    this.editPart.c_id = this.c_id;
     const _this = this;
     axios.get('http://localhost:8181/mooc/teacher/getTeacherPart/'+this.c_id).then(resp => {
         _this.tableData = resp.data;
@@ -142,11 +160,40 @@ export default {
   },
   methods: {
 
-    handleClick(row){
+    updatePart(row){
       //访问后台的文件系统
       console.log(row.p_id);
       this.url = 'http://localhost:8181/mooc/file/pdf/'+row.p_id;
       this.pageNum = 1;
+    },
+
+    dropPart(row){
+      console.log(row.p_id);
+      this.tmp_p_id = row.p_id;//把表格数据赋值给临时变量
+      this.confirmDelete = true;
+    },
+    innerDropPart(){
+      //进入后台的删除页面
+      const _this = this;
+      console.log(this.tmp_p_id);
+      axios.post('http://localhost:8181/mooc/part/delete/'+this.tmp_p_id).then(resp => {
+        this.confirmDelete = false;//关闭删除页面
+        console.log(resp.data)
+        if(resp.data === 'success'){
+          _this.$message({
+            message: '删除成功！',
+            type: 'success'
+          })
+          _this.$router.go(0);
+        }
+        else{
+          _this.$message({
+            message: '发生错误,请稍后再试',
+            type: 'error'
+          })
+        }
+
+      })
     },
     handleClose(){
       this.$confirm('确认关闭？')
@@ -162,7 +209,32 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          alert('submit!');
+          console.log(this.editPart.c_id);
+          const _this = this;
+          axios.post('http://localhost:8181/mooc/part/insert',this.editPart).then(resp => {
+            console.log(resp.data);
+            if(resp.data === 'failed'){
+              _this.$message({
+                message: "请求发生错误，请重试！",
+                type: 'warning'
+              })
+            }
+            else{
+              //如果收到了服务器端返回的结果，就把对话框关掉
+              //弹出成功的消息提示
+              _this.$message({
+                message: '添加成功！',
+                type: 'success'
+              })
+
+              _this.timer = setTimeout(() =>{
+                _this.dialogVisible = false;
+                //过500ms后自动关闭对话框
+              },500);
+              //刷新浏览器对象
+              _this.$router.go(0);
+            }
+          })
         } else {
           console.log('error submit!!');
           return false;
