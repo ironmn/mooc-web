@@ -62,12 +62,15 @@
         <el-form-item label="上传课件">
           <el-upload
               class="upload-demo"
-              action="https://jsonplaceholder.typicode.com/posts/"
+              action="http://localhost:8181/mooc/file/upload"
+              accept=".pdf"
+              :data="{f_name: editPart.c_id+'_'+editPart.p_index}"
           >
             <el-button size="small" type="primary">点击上传</el-button>
             <div slot="tip" class="el-upload__tip" style="float: right">只能上传pdf文件，且不超过100MB</div>
           </el-upload>
         </el-form-item>
+
 
         <el-form-item>
           <el-button type="primary" @click="submitForm('editPart')">立即创建</el-button>
@@ -87,6 +90,10 @@
     <el-button type="primary" @click="innerDropPart">确 定</el-button>
   </span>
     </el-dialog>
+
+
+
+
   </el-row>
 </template>
 
