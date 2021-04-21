@@ -49,12 +49,6 @@ const routes = [
         meta:{title: '我的选课'},
       },
       {
-        path: '/course/teachCourse',
-        name: '我教的课',
-        component: CreateCourse,
-        meta:{title: '我教的课'}
-      },
-      {
         path:'/course/addCourse',
         name: '选课',
         component: AddCourse,
@@ -131,7 +125,8 @@ const routes = [
         name: '发布新课程',
         meta: {
           title: '发布新课程'
-        }
+        },
+        component: CreateCourse
       },
       {
         path: '/teacher/answer',

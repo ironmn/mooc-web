@@ -71,6 +71,19 @@
           </el-upload>
         </el-form-item>
 
+        <el-form-item label="上传作业">
+          <el-upload
+              class="upload-demo"
+              action="http://localhost:8181/mooc/file/uploadHomework"
+              accept=".pdf"
+              :data="{f_name: editPart.c_id+'_'+editPart.p_index+'_homework'}"
+          >
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip" style="float: right">只能上传pdf文件，且不超过100MB</div>
+          </el-upload>
+        </el-form-item>
+
+
 
         <el-form-item>
           <el-button type="primary" @click="submitForm('editPart')">立即创建</el-button>
@@ -78,6 +91,7 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+
 
     <el-dialog
         title="提示"

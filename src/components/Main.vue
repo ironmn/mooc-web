@@ -36,12 +36,12 @@
       </el-aside>
       <el-container>
         <el-header class="main-header">
-          <el-dropdown>
+          <el-dropdown @click="handleCommand">
                         <span class="el-dropdown-link">
                             <img src="" alt="">
                         </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>退出登录</el-dropdown-item>
+              <el-dropdown-item command="quit">退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </el-header>
@@ -158,6 +158,9 @@ export default {
     };
   },
   methods: {
+    handleCommand(command){
+      this.$message('click on item ' + command);
+    },
     getBreadList(val) {
       // 过滤路由matched对象
       if (val.matched) {
